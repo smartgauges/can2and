@@ -1,7 +1,7 @@
 # can2and
 Firmware for stm32 for displaying parking sensors in android
 
-[More info](https://www.drive2.ru/r/landrover/freelander/521042068802372396/)
+[More info on drive2.ru](https://www.drive2.ru/l/543928403334529733/)
 
 ![android](images/1.jpg)
 
