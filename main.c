@@ -374,6 +374,7 @@ static uint8_t radar_scale(uint32_t value, uint32_t in_min, uint32_t in_max, uin
 	return (((value - in_min) * (out_max - out_min)) / (in_max - in_min)) + out_min;
 }
 
+//#define LR2_2007
 void radar_process(void)
 {
 	uint8_t msgs_num = can_get_msgs_num();
@@ -388,13 +389,12 @@ void radar_process(void)
 	 * rear
 	 * 2E22040810182089
 	 */
-
 	struct msg_can_t msg;
 	for (uint8_t i = 0; i < msgs_num; i++) {
 
 		if (!can_get_msg(&msg, i))
 			continue;
-
+#ifdef LR2_2007
 		if (0x188 != msg.id)
 			continue;
 
@@ -402,6 +402,17 @@ void radar_process(void)
 			continue;
 
 		uint32_t f = (msg.data[5] << 16) | (msg.data[6] << 8) | msg.data[7];
+		uint32_t b = (msg.data[2] << 16) | (msg.data[3] << 8) | msg.data[4];
+#else
+		if (0x4a6 != msg.id)
+			continue;
+
+		if (!(msg.data[0] & 0x04))
+			continue;
+
+		uint32_t f = (msg.data[2] << 16) | (msg.data[3] << 8) | msg.data[4];
+		uint32_t b = (msg.data[5] << 16) | (msg.data[6] << 8) | msg.data[7];
+#endif
 		uint8_t f0 = (f >> 15) & 0x1f;
 		uint8_t f1 = (f >> 10) & 0x1f;
 		uint8_t f2 = (f >> 5) & 0x1f;
@@ -414,7 +425,6 @@ void radar_process(void)
 		fbuf[6] = 60 - radar_scale(f0, 0, 32, 0, 60);
 		fbuf[7] = radar_checksum(fbuf + 1, 6);
 
-		uint32_t b = (msg.data[2] << 16) | (msg.data[3] << 8) | msg.data[4];
 		uint8_t b0 = (b >> 15) & 0x1f;
 		uint8_t b1 = (b >> 10) & 0x1f;
 		uint8_t b2 = (b >> 5) & 0x1f;
